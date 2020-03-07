@@ -56,6 +56,12 @@ void my_delay(int duration) {
       changing_state = true;
       return;
     }
+
+    if (WiFi.status() != WL_CONNECTED) {
+      connect_to_network();
+      changing_state = true;
+      return;
+    }
 }
 
 void reset() {
