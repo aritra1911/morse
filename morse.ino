@@ -1,19 +1,23 @@
 #include <WiFi.h>
+#include <ArduinoJson.h>
 #include "morse_utils.h"
 #include "network_handler.h"
 
 #define LED_BUILTIN 2  // for ESP32
 #define BUZZER 25
-#define WPM 40
+#define DEFAULT_WPM 15
 #define WAIT_TIME 5000
 
 String morse_code;
-double unit;
+int previous_character;
+int wpm, fwpm;
+double unit, f_unit;
 int i;  // the control variable
 bool changing_state;
 
 WiFiServer server(80);
 WiFiClient client;
+StaticJsonDocument<20000> doc;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -23,10 +27,12 @@ void setup() {
   connect_to_network();
 
   morse_code = ".-. . .- -.. -.--";  // ready
+
+  unit = 60 / (50.0 * DEFAULT_WPM);
+  f_unit = ((60.0 / DEFAULT_WPM) - (31.0 * unit)) / 19.0;
+
   i = 0;
   changing_state = false;
-
-  unit = 60 / (50.0 * WPM);
 }
 
 void loop() {
@@ -36,6 +42,7 @@ void loop() {
   }
   
   write_morse(morse_code.charAt(i));
+
   if (++i == morse_code.length()) reset();
 }
 
@@ -51,17 +58,38 @@ void my_delay(int duration) {
   while ((millis() - start_time) < duration)
     if (client = server.available()) {
       String json = get_request_data();
-      Serial.println(json);
-      morse_code = json;
+      // Deserialize the JSON document
+      DeserializationError error = deserializeJson(doc, json);
+
+      // Test if parsing succeeds.
+      if (error) {
+        Serial.print(F("deserializeJson() failed: "));
+        Serial.println(error.c_str());
+        return;
+      }
+      wpm = doc["wpm"];
+      fwpm = doc["fwpm"];
+      morse_code = doc["code"].as<String>();
+      Serial.print("WPM: ");
+      Serial.println(wpm);
+      Serial.print("FWPM: ");
+      Serial.println(fwpm);
+      Serial.print("Code: ");
+      Serial.println(morse_code);
       changing_state = true;
+      recalculate_units();
       return;
     }
 
     if (WiFi.status() != WL_CONNECTED) {
       connect_to_network();
-      changing_state = true;
       return;
     }
+}
+
+void recalculate_units() {
+  unit = 6.0 / (5.0 * wpm);
+  f_unit = ((60.0 / fwpm) - (31.0 * unit)) / 19.0;
 }
 
 void reset() {
