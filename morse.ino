@@ -40,7 +40,7 @@ void loop() {
     changing_state = false;
     reset();
   }
-  
+
   write_morse(morse_code.charAt(i));
 
   if (++i == morse_code.length()) reset();

@@ -7,12 +7,12 @@ void write_morse(int ch) {
       write_state(unit, HIGH);
       write_state(unit, LOW);
       break;
-  
+
     case '-':
       write_state(3.0*unit, HIGH);
       write_state(unit, LOW);
       break;
-    
+
     case ' ':
       if (previous_character == '.' || previous_character == '-') {
         write_state(2.0*f_unit + (f_unit - unit), LOW);

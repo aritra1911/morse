@@ -11,13 +11,13 @@ extern WiFiClient client;
 void connect_to_network() {
   Serial.print("Connecting to ");
   Serial.print(SSID);
-  
+
   WiFi.begin(SSID, PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  
+
   Serial.print("\nConnected.");
 
   Serial.print("\nIP Address: ");
@@ -29,7 +29,7 @@ String get_request_data() {
   String client_IP = client.remoteIP().toString();
   String content="";
   int b=0;
-  
+
   Serial.print("New Client : ");
   Serial.println(client_IP);
 
