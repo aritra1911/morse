@@ -4,7 +4,7 @@
 #include "network_handler.h"
 
 #define LED_BUILTIN 2  // for ESP32
-#define BUZZER 25
+#define BUZZER 23
 #define DEFAULT_WPM 15
 #define WAIT_TIME 5000
 

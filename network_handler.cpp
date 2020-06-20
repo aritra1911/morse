@@ -27,9 +27,8 @@ void connect_to_network() {
 
 String get_request_data() {
   String client_IP = client.remoteIP().toString();
-  String header="", current_line="", content="";
-  int content_length=-1;
-  bool header_transmitted = false;
+  String content="";
+  int b=0;
   
   Serial.print("New Client : ");
   Serial.println(client_IP);
@@ -37,26 +36,15 @@ String get_request_data() {
   while (client.connected()) {
     if (client.available()) {
       char c = client.read();
-      if (!header_transmitted)
-        header += c;
-      else {
-        content += c;
-        if (!--content_length) {
-          client.stop();
-          Serial.print(client_IP);
-          Serial.println(" disconnected");
-        }
+      Serial.print((char)c);
+      // capturing one json object
+      if (c == '{') b++;
+      if (b) content += c;
+      if (c == '}' && --b == 0) {
+        client.stop();
+        Serial.print(client_IP);
+        Serial.println(" disconnected");
       }
-      
-      if (c == '\n') {
-          if (!current_line.length()) {
-            header_transmitted = true;
-            continue;
-          } else if (current_line.startsWith("Content-Length:"))
-            content_length = current_line.substring(16).toInt();
-          current_line = "";
-      } else if (c != '\r')
-        current_line += c;
     }
   }
 
